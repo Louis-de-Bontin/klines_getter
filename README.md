@@ -1,3 +1,4 @@
+
 # klines_getter
 Download the historical candles of crypto on binance
 
@@ -10,11 +11,14 @@ This prompt application/package has 3 purposes :
 This code must be usable by prompt with a \_\_main\_\_.py to easely download the datas, and also usable as a package to impleament the 2nd and 3rd features in any trading project.  
 
 # Architecture
+<pre>
 ├──.gitignore  
 ├──README.md  
 ├──requirements.txt  
+</pre>
 ├──\_\_main\_\_.py  
 ├──\_\_klines_geter\_\_.py    
+<pre>
 └──settings  
 |   ├──keys.py  
 ├──model  
@@ -44,3 +48,4 @@ This code must be usable by prompt with a \_\_main\_\_.py to easely download the
 |   ├──04_models  
 |   ├──05_model_outputs  
 |   └──06_reporting  
+</pre>
