@@ -15,37 +15,35 @@ This code must be usable by prompt with a \_\_main\_\_.py to easely download the
 ├──.gitignore  
 ├──README.md  
 ├──requirements.txt  
-</pre>
-├──\_\_main\_\_.py  
-├──\_\_klines_geter\_\_.py    
-<pre>
+├──__main__.py  
+├──__klines_geter__.py    
 └──settings  
-|   ├──keys.py  
+   ├──keys.py  
 ├──model  
-|   |--binance_spot.py  
-|   └──binance_futures.py  
+   |--binance_spot.py  
+   └──binance_futures.py  
 ├──display  
-|   ├──menus.py  
-|   └──errors.py  
+   ├──menus.py  
+   └──errors.py  
 ├──control  
-|   ├──functions.py  
-|   ├──data_builder.py  
-|   └──csv_creator.py  
+   ├──functions.py  
+   ├──data_builder.py  
+   └──csv_creator.py  
 ├──data  
-|   ├──01_raw  
-|   └──02_intermediate  
-|       └──data_price  
-|           └──binance  
-|               └──spot  
-|                   └──pair1  
-|                       ├──EXCHANGE_PAIR_ohlc_date_timeframe.csv  
-|                       └──...  
-|                   └──pair2  
-|                       ├──EXCHANGE_PAIR_ohlc_date_timeframe.csv  
-|                       └──...  
-|                   └──...  
-|   ├──03_processed  
-|   ├──04_models  
-|   ├──05_model_outputs  
-|   └──06_reporting  
+   ├──01_raw  
+   └──02_intermediate  
+       └──data_price  
+           └──binance  
+               └──spot  
+                   └──pair1  
+                       ├──EXCHANGE_PAIR_ohlc_date_timeframe.csv  
+                       └──...  
+                   └──pair2  
+                       ├──EXCHANGE_PAIR_ohlc_date_timeframe.csv  
+                       └──...  
+                   └──...  
+   ├──03_processed  
+   ├──04_models  
+   ├──05_model_outputs  
+   └──06_reporting  
 </pre>
