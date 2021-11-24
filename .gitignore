@@ -130,3 +130,5 @@ dmypy.json
 
 # Coder ignore
 settings/keys.py
+test.py
+keys.txt
