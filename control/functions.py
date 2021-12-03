@@ -75,3 +75,37 @@ def date_to_binance_format(date):
 
 def date_binance_format_to_python_compatible(date):
     pass
+
+def create_date_folder(pair, datestart, dateend):
+    start_str = str(datestart)
+    end_str = str(dateend)
+
+    start_year = start_str[0] + start_str[1] + start_str[2] + start_str[3]
+    start_month = start_str[5] + start_str[6]
+    end_year = end_str[0] + end_str[1] + end_str[2] + end_str[3]
+    end_month = end_str[5] + end_str[6]
+    current_year = start_year
+    current_month = start_month
+
+
+
+    while (end_year + end_month) != (current_year + current_month):
+        # print(end_year + end_month + "            " + current_year + current_month)
+        if end_year != current_year:
+            while int(current_month[0] + current_month[1]) <= 12:
+                create_folder('data/02_intermediate/data_price/binance/spot/' + pair + "/" + current_year + current_month)
+                current_month = str(int(current_month) + 1)
+                if len(current_month) < 2:
+                    current_month = '0' + current_month
+        else:
+            while int(current_month[0] + current_month[1]) <= int(end_month):
+                create_folder('data/02_intermediate/data_price/binance/spot/' + pair + "/" + current_year + current_month)
+                # if (end_year + end_month) != (current_year + current_month):
+                current_month = str(int(current_month) + 1)
+                if len(current_month) < 2:
+                    current_month = '0' + current_month
+            break
+
+        if current_year < end_year:
+            current_year = str(int(current_year) + 1)
+            current_month = '01'

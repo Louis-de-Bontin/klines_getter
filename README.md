@@ -7,6 +7,7 @@ This prompt application/package has 3 purposes :
     -Get the historic candles of an asset named by the user on an exchange named by the user and to sort with a data analyst methodology. The user must choose a start date, an end date, futures or spot, one or more sticker, one or more timeframe.  
     -Build a pandas DataFrame from the csv built by the first feature.   
     -Get the candles in real time, this feature runs until the user, or other program stops it.  
+    (When you launch it, the program will check the latest data you have on the targeted asset. It will ask if you want to dl all the historical missing datas, or if you want to choose a new startdate. If you don't have any, it will just ask the startdate, note that when you dl the last candle, python-binance ask a startdate, so it won't be that hard)
 
 This code must be usable by prompt with a \_\_main\_\_.py to easely download the datas, and also usable as a package to impleament the 2nd and 3rd features in any trading project.  
 

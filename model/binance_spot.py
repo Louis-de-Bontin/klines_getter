@@ -3,7 +3,7 @@ import control.functions as func
 # Create the fine keys.py wich doesn't exists on github for security reasons
 from settings import build, keys
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Binance_spot():
     def __init__(self):
@@ -37,6 +37,7 @@ class Binance_spot():
             user_entry = input('Pair : ').upper()
             if user_entry != '' and user_entry in self.all_pairs:
                 self.pairs.append(user_entry)
+                func.create_folder('data/02_intermediate/data_price/binance/spot/' + user_entry)
             elif user_entry != '':
                 print('This pair doesn\'t exists on Binance, try again.')
             else:
@@ -48,7 +49,7 @@ class Binance_spot():
         tdelta = self.dateend - self.datestart
         if tdelta.total_seconds() < 86400:
             print('Start date more recent than end date. Please enter valid dates.')
-            dates = self.ask_date()
+            self.ask_date()
         
         print('Enter timeframes (possibilities : 5m, 15m, 30m, 1h, 4h, 12h, 1d, 1w, 1M)')
         while True:
@@ -79,6 +80,7 @@ class Binance_spot():
                     print('Date is in the future. Try again :')
                 else:
                     self.datestart = entry_user
+
                     break
                 continue
             except Exception as e:
@@ -89,7 +91,7 @@ class Binance_spot():
         while True:
             entry_user = input()
             if entry_user.lower() == 'now':
-                self.dateend = datetime.now()
+                self.dateend = now
                 break
             else:
                 entry_user = datetime.strptime(entry_user, '%y/%m/%d')
@@ -104,10 +106,8 @@ class Binance_spot():
                 except:
                     print('\nDate end : \nInvalid date format, try again (format YY/MM/DD):')
                     continue
-        self.deltadays = self.dateend - self.datestart
-        print(self.deltadays)
+        self.deltadays = self.dateend - self.datestart        
         self.deltadays = self.deltadays.total_seconds()/86400
-        print(self.deltadays)
 
     def interpret_user_entries(self):
         '''
@@ -117,37 +117,80 @@ class Binance_spot():
         self.binance_dateend = func.date_to_binance_format(self.dateend)
 
     def get_spot_klines(self):
-        ##########
-        my_dict = {
-            'pair1': {
-                'tf1' : 'table',
-                'tf2' : 'table'
-            },
-            'pair2' : {
-                'tf1' : 'table',
-                'tf2' : 'table'
-            }
-        }
-        ########
+        '''
+        Download the klines and build a dictionary with all the klines lists.
+        '''
         self.interpret_user_entries()
         self.dict_of_tables = {}
         for pair in self.pairs:
-            func.create_folder('data/02_intermediate/data_price/binance/futures/' + pair)
-            self.dict_of_tables[pair] = {}
+            func.create_date_folder(pair, self.datestart, self.dateend)
             for timeframe in self.timeframes:
                 candles = self.client.get_historical_klines(pair, timeframe, self.binance_datestart, self.binance_dateend)
-                self.process_candles()
-                self.dict_of_tables[pair][timeframe] = candles
-                # for candle in candles:
-                #     print(candle)
-                print(self.dict_of_tables)
-            print('#########\n\n##########')
-
-    def process_candles(self):
-        pass
-
-    def save_spot_klines_as_csv(self):
-        pass
+                ohlc = self.process_candle(candles)
+                self.save_ohlc(ohlc, pair, 'BN', 'spot', timeframe)
     
-    def build_df_from_csv(self):
+    def save_ohlc(self, full_df, pair, exchange, marketplace, timeframe):
+        '''
+        This function manipulates the dataframe, split it by years, then split all the new ones by months, and again by day.
+        Then, it builds the PATH and the CSV files names, and save the ohlc in the data.
+        '''
+        full_df['year'] = full_df['Date Open'].dt.year
+        full_df['month'] = full_df['Date Open'].dt.month
+        full_df['day'] = full_df['Date Open'].dt.day
+        # Split by years
+        df_year = [full_df[full_df['year'] == y] for y in full_df['year'].unique()]
+
+        for df in df_year:
+            # Split by months
+            df_month = [df[df['month'] == m] for m in df['month'].unique()]
+
+            for dataframe in df_month:
+                # Split by days
+                df_day = [dataframe[dataframe['day'] == d] for d in df['day'].unique()]
+
+                for ohlc in df_day:
+                    # Try/except because some df can be empty : only 1 weekly candle per 7 days.
+                    try:
+                        month = str(ohlc.iloc[-1]['month'])
+                        year = str(ohlc.iloc[-1]['year'])
+                        day = str(ohlc.iloc[-1]['day'])
+                        if len(month) == 1:
+                            month = '0' + month
+                        year_month = year + month
+
+                        PATH = 'data/02_intermediate/data_price/binance/' + marketplace + '/' + pair + '/' + year_month + '/'
+                        FILE_NAME = exchange + '_' + pair + '_ohlc_' + year + month + day + '_' + timeframe + '.csv'
+
+                        ohlc.to_csv(PATH + FILE_NAME, index=False)
+                    except:
+                        continue     
+
+    def process_candle(self, candles):
+        '''
+        Set the timezone, and the columns names.
+        '''
+        for candle in candles:
+            candle[0] = datetime.fromtimestamp(candle[0]/1000, tz=timezone.utc)
+            candle[6] = datetime.fromtimestamp(candle[6]/1000, tz=timezone.utc)
+        ohlc = pd.DataFrame(candles)
+        ohlc = ohlc.rename(columns= {
+            0: "Date Open",
+            1: "Open",
+            2: "High",
+            3: "Low",
+            4: "Close",
+            5: "Volume",
+            6: "Date Close",
+            7: "Quote",
+            8: "Nb of trades",
+            9: 'Taker buy base asset volume',
+            10: 'Taker buy quote asset volume',
+            11: 'Ignore'
+        })
+        return ohlc
+    
+    def build_df_from_csv(self, pair, timeframe):
+        # Regarde si les data sont dispo, sinon il les dl
+        # Si, par exemple, des data sont dispo du 2021/06/01, jusqu'au 2021/10/01,
+        # mais que nous sommes le 2021/11/01, il dl la différence.
         pass
