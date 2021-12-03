@@ -132,3 +132,4 @@ dmypy.json
 settings/keys.py
 test.py
 keys.txt
+data/
